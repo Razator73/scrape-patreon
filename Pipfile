@@ -7,9 +7,11 @@ name = "pypi"
 selenium = "*"
 python-dotenv = "*"
 gdown = "*"
+undetected-chromedriver = "*"
+pyvirtualdisplay = "*"
 
 [dev-packages]
 ipython = "*"
 
 [requires]
-python_version = "3.13"
+python_version = "3.11"
