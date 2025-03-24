@@ -12,6 +12,8 @@ from selenium.webdriver.common.by import By
 def fetch_collection_links(wd, count, name, url):
     download_folder = Path(os.environ['DOWNLOAD_PATH']) / name
     download_folder.mkdir(exist_ok=True)
+    for part_file in download_folder.glob('*.part'):
+        part_file.unlink()
     print(f'Getting posts for {name}')
     if len([f for f in download_folder.glob('*')]) == count:
         print('\tNumber of files equal the post count. Skipping')
@@ -34,7 +36,7 @@ def fetch_collection_links(wd, count, name, url):
 
 if __name__ == '__main__':
     load_dotenv()
-    download_cols = ['Dragonball', 'Breaking Bad', 'FMAB']
+    download_cols = ['Dragonball', 'Breaking Bad', 'Solo Leveling', 'NARUTO REACTIONS']
 
     with Display(visible=False) as display:
         with uc.Chrome(subprocess=True) as driver:
@@ -64,11 +66,24 @@ if __name__ == '__main__':
     all_posts = {col['name']: col['posts'] for col in collection_links.values() if 'posts' in col}
     for col, posts in all_posts.items():
         print(f'Downloading missing posts for {col}...')
-        for post in posts:
+        for post in posts[::-1]:
             if post[0].exists():
                 print(f'{post[0].name} exists')
                 continue
             gdrive_id = post[1].split('/')[-2]
             down_url = f'https://drive.google.com/uc?id={gdrive_id}'
             # print(f'\tDownloading {post[0].name}')
-            gdown.download(down_url, str(post[0]), quiet=True)
+            retry = True
+            retries = 0
+            while retry and retries < 5:
+                try:
+                    gdown.download(down_url, str(post[0]), quiet=False)
+                except gdown.exceptions.FileURLRetrievalError:
+                    print(f"Couldn't download {post[0]}")
+                    retry = False
+                except (BlockingIOError, OSError):
+                    retries += 1
+                    print(f'Retrying attempt {retries} for {post[0]}')
+                    time.sleep(30)
+                else:
+                    retry = False
