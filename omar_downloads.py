@@ -21,17 +21,27 @@ def fetch_collection_links(wd, count, name, url):
         return []
     wd.get(url)
     time.sleep(3)
-    while load_more := [e for e in wd.find_elements(By.XPATH, "//div[contains(@class, 'sc-eCImPb cXvBBE')]")
-                        if e.text == 'Load more']:
+    while load_more := [e for e in wd.find_elements(By.TAG_NAME, "button") if e.text == 'Load more']:
         load_more[0].click()
         time.sleep(5)
-    post_divs = wd.find_elements(By.XPATH, "//div[contains(@data-tag, 'post-card')]")[::-1]
-    print(f'\tFound {len(post_divs)}')
+    all_links = wd.find_elements(By.TAG_NAME, "a")
+    post_links = [(a.text.split('\n')[-1], a.get_property('href')) for a in all_links
+                  if a.get_property('href').endswith(f'collection={url.split("/")[-1]}')][::-1]
+    print(f'\tFound {len(post_links)}')
     col_posts = []
-    for i, col_post in enumerate(post_divs):
-        file_name, download_link = col_post.text.split('\n')[:2]
-        file_name = f'{i + 1:03} {file_name}'
-        col_posts.append((download_folder / file_name, download_link))
+    for i, col_post in enumerate(post_links):
+        file_name, post_link = col_post
+        file_name = file_name.replace('/', '_').replace('\\', '_')
+        file_name = f'{i + 1:03} {file_name}.mp4'
+        file_path = download_folder / file_name
+        if file_path.exists():
+            print(f'\t{file_path.name} exists')
+            continue
+        wd.get(post_link)
+        time.sleep(2)
+        download_link = wd.find_elements(By.XPATH, "//a[contains(@class, 'sc-a2037d61-4 hXDQOc')]")[0]\
+            .get_property('href')
+        col_posts.append((file_path, download_link))
     return col_posts
 
 
@@ -70,16 +80,13 @@ if __name__ == '__main__':
             continue
         print(f'Downloading missing posts for {col}...')
         for post in posts[::-1]:
-            if post[0].exists():
-                print(f'{post[0].name} exists')
-                continue
             gdrive_id = post[1].split('/')[-2]
             down_url = f'https://drive.google.com/uc?id={gdrive_id}'
-            # print(f'\tDownloading {post[0].name}')
             retry = True
             retries = 0
             while retry and retries < 5:
                 try:
+                    print(f'\tDownloading {post[0].name}')
                     gdown.download(down_url, str(post[0]), quiet=True)
                 except gdown.exceptions.FileURLRetrievalError:
                     print(f"Couldn't download {post[0]}")
