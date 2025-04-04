@@ -37,7 +37,7 @@ def fetch_collection_links(wd, count, name, url):
 
 if __name__ == '__main__':
     load_dotenv()
-    download_cols = ['Dragonball', 'Breaking Bad', 'Solo Leveling', 'NARUTO REACTIONS']
+    download_cols = ['Dragonball', 'Breaking Bad', 'Devil May Cry']
 
     with Display(visible=False) as display:
         with uc.Chrome(subprocess=True) as driver:
@@ -66,6 +66,8 @@ if __name__ == '__main__':
                 collection_links[col]['posts'] = fetch_collection_links(driver, **collection_links[col])
     all_posts = {col['name']: col['posts'] for col in collection_links.values() if 'posts' in col}
     for col, posts in all_posts.items():
+        if not posts:
+            continue
         print(f'Downloading missing posts for {col}...')
         for post in posts[::-1]:
             if post[0].exists():
@@ -78,7 +80,7 @@ if __name__ == '__main__':
             retries = 0
             while retry and retries < 5:
                 try:
-                    gdown.download(down_url, str(post[0]), quiet=False)
+                    gdown.download(down_url, str(post[0]), quiet=True)
                 except gdown.exceptions.FileURLRetrievalError:
                     print(f"Couldn't download {post[0]}")
                     retry = False
