@@ -29,6 +29,7 @@ def fetch_collection_links(wd, count, name, url):
                   if a.get_property('href').endswith(f'collection={url.split("/")[-1]}')][::-1]
     print(f'\tFound {len(post_links)}')
     col_posts = []
+    gdrive_url = 'https://drive.google.com'
     for i, col_post in enumerate(post_links):
         file_name, post_link = col_post
         file_name = file_name.replace('/', '_').replace('\\', '_')
@@ -39,8 +40,9 @@ def fetch_collection_links(wd, count, name, url):
             continue
         wd.get(post_link)
         time.sleep(2)
-        download_link = wd.find_elements(By.XPATH, "//a[contains(@class, 'sc-a2037d61-4 hXDQOc')]")[0]\
-            .get_property('href')
+        all_links = wd.find_elements(By.TAG_NAME, "a")
+        download_link = [link.get_property('href') for link in all_links
+                         if link.get_property('href').startswith(gdrive_url)][0]
         col_posts.append((file_path, download_link))
     return col_posts
 
