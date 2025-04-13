@@ -47,7 +47,7 @@ def fetch_collection_links(wd, count, name, url):
 
 if __name__ == '__main__':
     load_dotenv()
-    download_cols = ['Dragonball', 'Breaking Bad', 'Devil May Cry']
+    download_cols = ['Dragonball', 'Breaking Bad', 'Anime Movies', 'FATE']
 
     with Display(visible=False) as display:
         with uc.Chrome(subprocess=True) as driver:
@@ -62,7 +62,7 @@ if __name__ == '__main__':
             time.sleep(2)
             driver.get('https://www.patreon.com/c/omariorpg/collections')
             time.sleep(10)
-            collections = driver.find_elements(By.XPATH, "//div[contains(@class, 'sc-ieecCq hlVSeb')]")
+            collections = driver.find_elements(By.XPATH, "//div[contains(@class, 'sc-kfPuZi hoEXxy sc-dlVxhl BXcEA')]")
             collection_links = {}
             for col in collections:
                 col_link = col.find_element(By.TAG_NAME, 'a')
