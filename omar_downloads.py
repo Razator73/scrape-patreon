@@ -10,13 +10,19 @@ from pyvirtualdisplay import Display
 from selenium.webdriver.common.by import By
 
 
+def remove_part_files(folder):
+    folder.mkdir(exist_ok=True)
+    for part_file in folder.glob('*.part'):
+        part_file.unlink()
+
+
 def fetch_collection_links(wd, count, name, url):
     download_folder = Path(os.environ['DOWNLOAD_PATH']) / name
-    download_folder.mkdir(exist_ok=True)
-    for part_file in download_folder.glob('*.part'):
-        part_file.unlink()
+    archive_folder = Path(os.environ['ARCHIVE_PATH']) / name
+    remove_part_files(download_folder)
+    remove_part_files(archive_folder)
     print(f'Getting posts for {name}')
-    if len([f for f in download_folder.glob('*')]) == count:
+    if len([f for f in archive_folder.glob('*')]) == count:
         print('\tNumber of files equal the post count. Skipping')
         return []
     wd.get(url)
@@ -35,8 +41,9 @@ def fetch_collection_links(wd, count, name, url):
         file_name = file_name.replace('/', '_').replace('\\', '_')
         file_name = f'{i + 1:03} {file_name}.mp4'
         file_path = download_folder / file_name
-        if file_path.exists():
-            print(f'\t{file_path.name} exists')
+        archive_path = archive_folder / file_name
+        if archive_path.exists():
+            print(f'\t{file_name} exists')
             continue
         wd.get(post_link)
         time.sleep(2)
