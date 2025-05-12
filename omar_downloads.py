@@ -18,7 +18,9 @@ def remove_part_files(folder):
 
 def fetch_collection_links(wd, count, name, url):
     download_folder = Path(os.environ['DOWNLOAD_PATH']) / name
+    download_folder.mkdir(exist_ok=True)
     archive_folder = Path(os.environ['ARCHIVE_PATH']) / name
+    archive_folder.mkdir(exist_ok=True)
     remove_part_files(download_folder)
     remove_part_files(archive_folder)
     print(f'Getting posts for {name}')
@@ -56,7 +58,7 @@ def fetch_collection_links(wd, count, name, url):
 
 if __name__ == '__main__':
     load_dotenv()
-    download_cols = ['Dragonball', 'Breaking Bad', 'Anime Movies', 'FATE']
+    download_cols = ['Dragonball', 'Breaking Bad', 'Anime Movies', 'FATE', 'Mob Psycho', 'Rezero', 'Apothecary Diaries']
 
     with Display(visible=False) as display:
         with uc.Chrome(subprocess=True) as driver:
