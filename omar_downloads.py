@@ -73,7 +73,9 @@ if __name__ == '__main__':
             time.sleep(2)
             driver.get('https://www.patreon.com/c/omariorpg/collections')
             time.sleep(10)
-            collections = driver.find_elements(By.XPATH, "//div[contains(@class, 'sc-kfPuZi hoEXxy sc-dlVxhl BXcEA')]")
+            links = driver.find_elements(By.TAG_NAME, "a")
+            collections = [a.find_element(By.XPATH, "../..") for a in links
+                           if a.get_property('href').startswith('https://www.patreon.com/collection/')]
             collection_links = {}
             for col in collections:
                 col_link = col.find_element(By.TAG_NAME, 'a')
