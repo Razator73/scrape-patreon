@@ -58,7 +58,8 @@ def fetch_collection_links(wd, count, name, url):
 
 if __name__ == '__main__':
     load_dotenv()
-    download_cols = ['Dragonball', 'Breaking Bad', 'Anime Movies', 'FATE', 'Mob Psycho', 'Rezero', 'Apothecary Diaries']
+    download_cols = ['Dragonball', 'Breaking Bad', 'Anime Movies', 'FATE', 'Mob Psycho', 'Rezero', 
+                     'Apothecary Diaries', 'Naruto Shippuden']
 
     with Display(visible=False) as display:
         with uc.Chrome(subprocess=True) as driver:
