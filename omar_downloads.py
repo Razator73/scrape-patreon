@@ -42,6 +42,10 @@ def fetch_collection_links(wd, count, name, url):
         file_name, post_link = col_post
         file_name = file_name.replace('/', '_').replace('\\', '_')
         file_name = f'{i + 1:03} {file_name}.mp4'
+        if file_name == '005 Reacting to One Punch Man S3X4.mp4':
+            file_name = '004 Reacting to One Punch Man S3X4.mp4'
+        if file_name == '004 Reacting to One Punch Man S3X5.mp4':
+            file_name = '005 Reacting to One Punch Man S3X5.mp4'
         file_path = download_folder / file_name
         archive_path = archive_folder / file_name
         if archive_path.exists():
@@ -58,8 +62,7 @@ def fetch_collection_links(wd, count, name, url):
 
 if __name__ == '__main__':
     load_dotenv()
-    download_cols = ['Dragonball', 'Breaking Bad', 'Anime Movies', 'FATE', 'Mob Psycho', 'Rezero', 
-                     'Apothecary Diaries', 'Naruto Shippuden']
+    download_cols = ['Naruto Shippuden', 'JJK', 'Frieren']
 
     with Display(visible=False) as display:
         with uc.Chrome(subprocess=True) as driver:
@@ -83,6 +86,7 @@ if __name__ == '__main__':
                 col_count, col_name = col.text.split('\n')
                 collection_links[col_name] = {'name': col_name, 'count': int(col_count),
                                               'url': col_link.get_property('href')}
+            print(f'Collections:\n{collection_links.keys()}')
             for col in download_cols:
                 if col not in collection_links:
                     print(f"Couldn't find the collection: {col}")
