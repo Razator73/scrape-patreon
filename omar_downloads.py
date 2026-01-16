@@ -77,6 +77,13 @@ if __name__ == '__main__':
             time.sleep(2)
             driver.get('https://www.patreon.com/c/omariorpg/collections')
             time.sleep(10)
+            for _ in range(25):
+                last_height = driver.execute_script("return document.body.scrollHeight")
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(3)
+                new_height = driver.execute_script("return document.body.scrollHeight")
+                if new_height == last_height:
+                    break
             links = driver.find_elements(By.TAG_NAME, "a")
             collections = [a.find_element(By.XPATH, "../..") for a in links
                            if a.get_property('href').startswith('https://www.patreon.com/collection/')]
