@@ -1,4 +1,5 @@
 #!/usr/bin/env pipenv-shebang
+import argparse
 import os
 import time
 from pathlib import Path
@@ -24,9 +25,9 @@ def fetch_collection_links(wd, count, name, url):
     archive_folder.mkdir(exist_ok=True)
     remove_part_files(download_folder)
     remove_part_files(archive_folder)
-    print(f'Getting posts for {name}')
+    logger.info(f'Getting posts for {name}')
     if len([f for f in archive_folder.glob('*')]) == count:
-        print('\tNumber of files equal the post count. Skipping')
+        logger.info('\tNumber of files equal the post count. Skipping')
         return []
     wd.get(url)
     time.sleep(3)
@@ -36,7 +37,7 @@ def fetch_collection_links(wd, count, name, url):
     all_links = wd.find_elements(By.TAG_NAME, "a")
     post_links = [(a.text.split('\n')[-1], a.get_property('href')) for a in all_links
                   if a.get_property('href').endswith(f'collection={url.split("/")[-1]}')][::-1]
-    print(f'\tFound {len(post_links)}')
+    logger.info(f'\tFound {len(post_links)}')
     col_posts = []
     gdrive_url = 'https://drive.google.com'
     for i, col_post in enumerate(post_links):
@@ -50,7 +51,7 @@ def fetch_collection_links(wd, count, name, url):
         file_path = download_folder / file_name
         archive_path = archive_folder / file_name
         if archive_path.exists():
-            print(f'\t{file_name} exists')
+            logger.info(f'\t{file_name} exists')
             continue
         wd.get(post_link)
         time.sleep(2)
@@ -61,11 +62,10 @@ def fetch_collection_links(wd, count, name, url):
     return col_posts
 
 
-if __name__ == '__main__':
-    load_dotenv()
+def main(logger, show_display):
     download_cols = ['Naruto Shippuden', 'JJK', 'Frieren']
 
-    with Display(visible=False) as display:
+    with Display(visible=show_display) as display:
         with uc.Chrome(subprocess=True, version_main=razator_utils.get_chrome_major_version()) as driver:
             driver.get('https://www.patreon.com/login')
             time.sleep(3)
@@ -94,17 +94,17 @@ if __name__ == '__main__':
                 col_count, col_name = col.text.split('\n')
                 collection_links[col_name] = {'name': col_name, 'count': int(col_count),
                                               'url': col_link.get_property('href')}
-            print(f'Collections:\n{collection_links.keys()}')
+            logger.info(f'Collections:\n{collection_links.keys()}')
             for col in download_cols:
                 if col not in collection_links:
-                    print(f"Couldn't find the collection: {col}")
+                    logger.info(f"Couldn't find the collection: {col}")
                     continue
                 collection_links[col]['posts'] = fetch_collection_links(driver, **collection_links[col])
     all_posts = {col['name']: col['posts'] for col in collection_links.values() if 'posts' in col}
     for col, posts in all_posts.items():
         if not posts:
             continue
-        print(f'Downloading missing posts for {col}...')
+        logger.info(f'Downloading missing posts for {col}...')
         for post in posts[::-1]:
             gdrive_id = post[1].split('/')[-2]
             down_url = f'https://drive.google.com/uc?id={gdrive_id}'
@@ -112,14 +112,38 @@ if __name__ == '__main__':
             retries = 0
             while retry and retries < 5:
                 try:
-                    print(f'\tDownloading {post[0].name}')
+                    logger.info(f'\tDownloading {post[0].name}')
                     gdown.download(down_url, str(post[0]), quiet=True)
                 except gdown.exceptions.FileURLRetrievalError:
-                    print(f"Couldn't download {post[0]}")
+                    logger.warning(f"Couldn't download {post[0]}")
                     retry = False
                 except (BlockingIOError, OSError):
                     retries += 1
-                    print(f'Retrying attempt {retries} for {post[0]}')
+                    logger.warning(f'Retrying attempt {retries} for {post[0]}')
                     time.sleep(30)
                 else:
                     retry = False
+
+
+if __name__ == '__main__':
+    load_dotenv()
+    arg_parser = argparse.ArgumentParser(prog='omar_downloads', description='Scrape Omario Patreon Collections for new videos')
+    arg_parser.add_argument('-d', '--show_display', action='store_true', help='Show the display')
+    arg_parser.add_argument('-v', '--stout-output', action='store_true', help='Export logging to terminal')
+    args = arg_parser.parse_args()
+
+    if args.stout_output:
+        file_logger = razator_utils.log.get_stout_logger('omar_downloads', 'INFO')
+    else:
+        log_file = Path.home() / 'logs' / 'omar_downloads.log'
+        log_file.parent.mkdir(exist_ok=True)
+        file_logger = razator_utils.log.get_file_logger('omar_downloads', log_file, 'INFO')
+
+
+    try:
+        main(file_logger, args.show_display)
+    except Exception:
+        if alert_url := os.getenv('DISCORD_ALERT_URL'):
+            razator_utils.discord_message(alert_url, 'Omar Download Failed. Check logs for details.')
+        file_logger.exception('Omar Download Failed')
+        sys.exit(1)
