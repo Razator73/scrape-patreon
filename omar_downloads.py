@@ -1,6 +1,7 @@
 #!/usr/bin/env pipenv-shebang
 import argparse
 import os
+import sys
 import time
 from pathlib import Path
 
@@ -18,7 +19,7 @@ def remove_part_files(folder):
         part_file.unlink()
 
 
-def fetch_collection_links(wd, count, name, url):
+def fetch_collection_links(wd, count, name, url, logger):
     download_folder = Path(os.environ['DOWNLOAD_PATH']) / name
     download_folder.mkdir(exist_ok=True)
     archive_folder = Path(os.environ['ARCHIVE_PATH']) / name
@@ -99,7 +100,7 @@ def main(logger, show_display):
                 if col not in collection_links:
                     logger.info(f"Couldn't find the collection: {col}")
                     continue
-                collection_links[col]['posts'] = fetch_collection_links(driver, **collection_links[col])
+                collection_links[col]['posts'] = fetch_collection_links(driver, **collection_links[col], logger=logger)
     all_posts = {col['name']: col['posts'] for col in collection_links.values() if 'posts' in col}
     for col, posts in all_posts.items():
         if not posts:
