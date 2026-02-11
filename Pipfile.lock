@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "eb24bb93cebdac5e47fd1260c9eb9ff637eea0c342d96aebbf3d2d71a4dcdbaa"
+            "sha256": "7938ce4d0e6726a03b2d65069f72eb95538903a85ac04c1dbf10589854e1d43f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -204,6 +204,15 @@
             ],
             "index": "pypi",
             "version": "==3.0"
+        },
+        "razator-utils": {
+            "hashes": [
+                "sha256:2bf65d27f8dde0d4cf0bc13f1f0613a65430bf6bcb6918a1c08a065b3a4dd10a",
+                "sha256:47389236b8b2831531b4c72c16252c778602519f80d3e291230617e40df6059e"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.8'",
+            "version": "==0.3.1"
         },
         "requests": {
             "extras": [

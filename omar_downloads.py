@@ -1,30 +1,14 @@
 #!/usr/bin/env pipenv-shebang
 import os
-import re
-import subprocess
 import time
 from pathlib import Path
 
 import gdown
+import razator_utils
 import undetected_chromedriver as uc
 from dotenv import load_dotenv
 from pyvirtualdisplay import Display
 from selenium.webdriver.common.by import By
-
-
-def get_chrome_major_version():
-    try:
-        # Find the path to the chrome executable
-        binary = uc.find_chrome_executable()
-        # Run the '--version' command and capture output
-        output = subprocess.check_output([binary, "--version"]).decode("utf-8")
-        # Extract the major version (e.g., '144' from 'Google Chrome 144.0.xxxx')
-        match = re.search(r"(\d+)\.", output)
-        if match:
-            return int(match.group(1))
-    except Exception as e:
-        print(f"Could not detect Chrome version: {e}")
-    return None
 
 
 def remove_part_files(folder):
@@ -82,7 +66,7 @@ if __name__ == '__main__':
     download_cols = ['Naruto Shippuden', 'JJK', 'Frieren']
 
     with Display(visible=False) as display:
-        with uc.Chrome(subprocess=True, version_main=get_chrome_major_version()) as driver:
+        with uc.Chrome(subprocess=True, version_main=razator_utils.get_chrome_major_version()) as driver:
             driver.get('https://www.patreon.com/login')
             time.sleep(3)
             email_element = driver.find_element(By.NAME, 'email')

@@ -9,6 +9,7 @@ python-dotenv = "*"
 gdown = "*"
 undetected-chromedriver = "*"
 pyvirtualdisplay = "*"
+razator-utils = "*"
 
 [dev-packages]
 ipython = "*"
