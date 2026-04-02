@@ -87,14 +87,20 @@ def main(logger, show_display):
                 if new_height == last_height:
                     break
             links = driver.find_elements(By.TAG_NAME, "a")
-            collections = [a.find_element(By.XPATH, "../..") for a in links
-                           if a.get_property('href').startswith('https://www.patreon.com/collection/')]
+            collection_a_tags = [a for a in links
+                                 if str(a.get_property('href')).startswith('https://www.patreon.com/collection/')]
             collection_links = {}
-            for col in collections:
-                col_link = col.find_element(By.TAG_NAME, 'a')
-                col_count, col_name = col.text.split('\n')
-                collection_links[col_name] = {'name': col_name, 'count': int(col_count),
-                                              'url': col_link.get_property('href')}
+            for col_link in collection_a_tags:
+                try:
+                    wrapper = col_link.find_element(By.XPATH, "./ancestor::div[.//p[@data-tag='box-collection-num-post']][1]")
+                    col_count_str = wrapper.find_element(By.CSS_SELECTOR, "p[data-tag='box-collection-num-post']").text.strip()
+                    col_name = col_link.text.strip()
+                    if not col_name:
+                        col_name = wrapper.find_element(By.CSS_SELECTOR, "[data-tag='box-collection-title']").text.strip()
+                    collection_links[col_name] = {'name': col_name, 'count': int(col_count_str),
+                                                  'url': col_link.get_property('href')}
+                except Exception as e:
+                    logger.warning(f"Failed to parse collection link: {e}")
             logger.info(f'Collections:\n{collection_links.keys()}')
             for col in download_cols:
                 if col not in collection_links:
